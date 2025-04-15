@@ -1,0 +1,25 @@
+
+
+
+<div class="details-container">
+    <div class="details-header">
+      <img class="details-flag" [src]="country?.flags?.png" *ngIf="country?.flags?.png">
+      <div class="details-name">{{ country?.name.common }}</div>
+    </div>
+  
+    <div class="details-info">
+      <div>Capital: {{ country?.capital[0] }}</div>
+      <div>Population: {{ country?.population | number }}</div>
+      <div>Area: {{ country?.area | number }} km²</div>
+      <div>Region: {{ country?.region }}</div>
+      <div>Subregion: {{ country?.subregion }}</div>
+    </div>
+  
+    <div class="neighbor-buttons" *ngIf="country?.borders?.length">
+      <h4>Neighboring Countries:</h4>
+      <button *ngFor="let border of country.borders" (click)="goToNeighbor(border)">
+        {{ border }}
+      </button>
+    </div>
+  </div>
+  
