@@ -190,11 +190,11 @@
 // }
 
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http'; 
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; 
-import { HttpClientModule } from '@angular/common/http'; 
+import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-country-ranking',
@@ -204,13 +204,16 @@ import { HttpClientModule } from '@angular/common/http';
   styleUrls: ['./country-ranking.component.css']
 })
 export class CountryRankingComponent implements OnInit {
-  countries: any[] = [];          
-  filteredCountries: any[] = [];  
-  searchText: string = '';        
-  sortBy: string = 'population';  
-  isUNMember: boolean = false;   
-  isIndependent: boolean = false; 
-  selectedRegion: string = '';   
+  countries: any[] = [];
+  filteredCountries: any[] = [];
+  searchText: string = '';
+  sortBy: string = 'population';
+  isUNMember: boolean = false;
+  isIndependent: boolean = false;
+  selectedRegion: string = '';
+
+  currentPage: number = 1;
+  itemsPerPage: number = 10;
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -222,17 +225,17 @@ export class CountryRankingComponent implements OnInit {
   }
 
   updateFilteredCountries(): void {
-    this.filteredCountries = this.countries
-      .filter(country => 
+    const filtered = this.countries
+      .filter((country) =>
         country.name.common.toLowerCase().includes(this.searchText.toLowerCase())
       )
-      .filter(country => 
+      .filter((country) =>
         this.selectedRegion ? country.region === this.selectedRegion : true
       )
-      .filter(country => 
+      .filter((country) =>
         this.isUNMember ? country.unMember === true : true
       )
-      .filter(country => 
+      .filter((country) =>
         this.isIndependent ? country.independent === true : true
       )
       .sort((a, b) => {
@@ -242,6 +245,9 @@ export class CountryRankingComponent implements OnInit {
           return b[this.sortBy] - a[this.sortBy];
         }
       });
+
+    this.filteredCountries = filtered;
+    this.currentPage = 1; // Reset to first page when filters change
   }
 
   onSearchChange(): void {
@@ -256,7 +262,58 @@ export class CountryRankingComponent implements OnInit {
     this.updateFilteredCountries();
   }
 
+  filterByRegion(region: string): void {
+    this.selectedRegion = region;
+    this.updateFilteredCountries();
+  }
+
   goToDetail(code: string): void {
     this.router.navigate(['/country', code]);
+  }
+
+  get paginatedCountries(): any[] {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredCountries.slice(start, start + this.itemsPerPage);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredCountries.length / this.itemsPerPage);
+  }
+
+  changePage(page: number): void {
+    this.currentPage = page;
+  }
+
+  onPageClick(page: number | string): void {
+    if (typeof page === 'number') {
+      this.changePage(page);
+    }
+  }
+
+  get paginationRange(): (number | string)[] {
+    const totalPages = this.totalPages;
+    const range = [];
+    let startPage = Math.max(this.currentPage - 2, 1);
+    let endPage = Math.min(this.currentPage + 2, totalPages);
+
+    if (startPage > 1) {
+      range.push(1);
+      if (startPage > 2) {
+        range.push('...');
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      range.push(i);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        range.push('...');
+      }
+      range.push(totalPages);
+    }
+
+    return range;
   }
 }
